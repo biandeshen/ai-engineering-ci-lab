@@ -30,3 +30,18 @@ def parse_task(line: str) -> tuple[str, str]:
     if not description:
         raise ValueError("task description cannot be empty")
     return state, description
+
+
+def parse_tasks(text: str) -> list[tuple[str, str]]:
+    """Parse newline-separated task records and report malformed line numbers."""
+    if not isinstance(text, str):
+        raise TypeError("task list must be text")
+    tasks = []
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            tasks.append(parse_task(line))
+        except ValueError as error:
+            raise ValueError(f"line {line_number}: {error}") from error
+    return tasks

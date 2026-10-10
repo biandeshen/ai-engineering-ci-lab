@@ -1,6 +1,6 @@
 import unittest
 
-from task_state import format_task, parse_task
+from task_state import format_task, parse_task, parse_tasks
 
 
 class FormatTaskTests(unittest.TestCase):
@@ -55,6 +55,33 @@ class ParseTaskTests(unittest.TestCase):
     def test_non_string(self):
         with self.assertRaises(TypeError):
             parse_task(None)
+
+
+class ParseTasksTests(unittest.TestCase):
+    def test_empty_and_whitespace_only(self):
+        self.assertEqual(parse_tasks(""), [])
+        self.assertEqual(parse_tasks(" \t\n  \n"), [])
+
+    def test_skips_blank_lines_and_preserves_order_and_descriptions(self):
+        text = "\n todo: first task: with detail \n \t\ndoing: second task\n"
+        self.assertEqual(
+            parse_tasks(text),
+            [("todo", "first task: with detail"), ("doing", "second task")],
+        )
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            parse_tasks(None)
+
+    def test_invalid_lines_include_physical_line_number_and_reason(self):
+        for record, reason in (
+            ("blocked: task", "unknown state: blocked"),
+            ("todo without separator", "task record requires ':'"),
+            ("done:   ", "task description cannot be empty"),
+        ):
+            with self.subTest(record=record):
+                with self.assertRaisesRegex(ValueError, rf"line 3: {reason}"):
+                    parse_tasks(f"todo: valid\n \n{record}\ntodo: not reached")
 
 
 if __name__ == "__main__":
