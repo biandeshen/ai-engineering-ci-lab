@@ -30,3 +30,18 @@ def parse_task(line: str) -> tuple[str, str]:
     if not description:
         raise ValueError("task description cannot be empty")
     return state, description
+
+
+def parse_tasks(text: str) -> list[tuple[str, str]]:
+    """Parse task lines; report the physical line of the first invalid record."""
+    if not isinstance(text, str):
+        raise TypeError("task list must be text")
+    result = []
+    for number, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            result.append(parse_task(line))
+        except ValueError as exc:
+            raise ValueError(f"line {number}: {exc}") from exc
+    return result
